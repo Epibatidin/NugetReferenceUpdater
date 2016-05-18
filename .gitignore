@@ -1,0 +1,11 @@
+*.dll
+*.pdb
+*.user
+*.suo
+*.ncrunchsolution
+*.DotSettings
+packages
+bin/*
+Debug
+.vs/*
+node_modules/*

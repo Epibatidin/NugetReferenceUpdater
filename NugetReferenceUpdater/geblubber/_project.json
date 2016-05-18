@@ -1,0 +1,20 @@
+{
+  "frameworks": {
+    "dnxcore50": {
+      "dependencies": {
+        "whatevercore1": "9.0.8-*",        
+        "whatevercore5": "9.0.8-*"
+      }
+    },
+
+    "dnx451": {
+      "dependencies": {
+        "whatever453": "9.9.5-*",
+        "whatever455": "9.9.5-*"
+      }
+    }
+  },
+  "dependencies": {
+    "global": "9.1.0",    
+  }
+}

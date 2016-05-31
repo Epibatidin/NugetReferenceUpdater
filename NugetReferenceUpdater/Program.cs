@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.IO;
 
@@ -22,6 +23,7 @@ namespace NugetReferenceUpdater
         {
             // search _globalNuget.json
             string rootPath = @"D:\Develop\KleinZeug\NugetReferenceUpdater\NugetReferenceUpdater";
+            rootPath = @"D:\Develop\FLUX";
             if (args.Length > 0)
                 rootPath = args[0];
             
@@ -37,45 +39,58 @@ namespace NugetReferenceUpdater
             var rootDir = new DirectoryInfo(rootPath);
 
             var projectJSons = rootDir.GetFiles("project.json", SearchOption.AllDirectories);
-
+            
             foreach (var projectJSon in projectJSons)
             {
-                string jsonContent = "";
-
-                using (var reader = projectJSon.OpenText())
+                try
                 {
-                    jsonContent = reader.ReadToEnd();
-                    reader.Close();
+                    ExecuteOneProjectFile(projectJSon, dependencies);
                 }
-                var jo = JObject.Parse(jsonContent);
-
-                foreach (var dependency in dependencies)
+                catch (Exception e)
                 {
-                    var actualDependencyNode = jo.SelectToken(dependency.JsonPath);
-
-                    foreach (var reference in dependency.References)
-                    {
-                        var actualDependencyValue = actualDependencyNode[reference.Key];
-
-                        if(actualDependencyValue == null) continue;
-
-                        var asValue = actualDependencyValue as JValue;
-                        if(asValue == null) continue;
-
-                        asValue.Value = reference.Value;
-                    }
+                    throw new Exception("Error in file " + projectJSon.FullName, e);
                 }
+            }
+        }
 
-                var newContent = jo.ToString();
-                
-                using (var fs = new FileStream(projectJSon.FullName, FileMode.Create))
-                using (var writer = new StreamWriter(fs))
+        private static void ExecuteOneProjectFile(FileInfo projectJSon, IList<DependencyNode> dependencies)
+        {
+            string jsonContent = "";
+
+            using (var reader = projectJSon.OpenText())
+            {
+                jsonContent = reader.ReadToEnd();
+                reader.Close();
+            }
+            var jo = JObject.Parse(jsonContent);
+
+            foreach (var dependency in dependencies)
+            {
+                var actualDependencyNode = jo.SelectToken(dependency.JsonPath);
+                if (actualDependencyNode == null) continue;
+
+                foreach (var reference in dependency.References)
                 {
-                    writer.Write(newContent);
+                    var actualDependencyValue = actualDependencyNode[reference.Key];
 
-                    writer.Flush();
-                    writer.Close();
+                    if (actualDependencyValue == null) continue;
+
+                    var asValue = actualDependencyValue as JValue;
+                    if (asValue == null) continue;
+
+                    asValue.Value = reference.Value;
                 }
+            }
+
+            var newContent = jo.ToString();
+
+            using (var fs = new FileStream(projectJSon.FullName, FileMode.Create))
+            using (var writer = new StreamWriter(fs))
+            {
+                writer.Write(newContent);
+
+                writer.Flush();
+                writer.Close();
             }
         }
 

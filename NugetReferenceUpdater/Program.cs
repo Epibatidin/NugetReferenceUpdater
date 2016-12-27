@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace NugetReferenceUpdater
 {
@@ -45,7 +46,7 @@ namespace NugetReferenceUpdater
                 try
                 {
                     ExecuteOneProjectFile(projectJSon, dependencies);
-                }
+                } 
                 catch (Exception e)
                 {
                     throw new Exception("Error in file " + projectJSon.FullName, e);
@@ -98,17 +99,30 @@ namespace NugetReferenceUpdater
         {
             var tokens = json.SelectTokens("$..dependencies");
 
-            var dependencies = new List<DependencyNode>();
-
+            var dependencies = new List<DependencyNode>();           
             foreach (var token in tokens)
             {
                 var dependency = new DependencyNode();
                 dependency.JsonPath = token.Path;
-
+                 
                 foreach (var references in token.Children())
                 {
                     var asProperty = references as JProperty;
-                    dependency.References.Add(asProperty.Name, asProperty.Value.Value<string>());
+
+                    var value = asProperty.Value;
+                    if (value.Type == JTokenType.Object)
+                    {
+                        var versionProp = value.SelectToken("$..version");
+                        dependency.References.Add(asProperty.Name + ".version", versionProp.Value<string>());
+                    }
+                    else if (value.Type == JTokenType.String)
+                    {
+                        dependency.References.Add(asProperty.Name, value.Value<string>());
+                    }
+                    else
+                        throw new NotSupportedException("Unexpected Token Type");
+                                            
+                    
                 }
                 dependencies.Add(dependency);
             }

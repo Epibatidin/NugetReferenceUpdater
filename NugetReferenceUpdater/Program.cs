@@ -40,9 +40,10 @@ namespace NugetReferenceUpdater
             var rootDir = new DirectoryInfo(rootPath);
 
             var projectJSons = rootDir.GetFiles("project.json", SearchOption.AllDirectories);
-            
-            foreach (var projectJSon in projectJSons)
+
+            for (int i = 0; i < projectJSons.Length; i++)
             {
+                var projectJSon = projectJSons[i];
                 try
                 {
                     ExecuteOneProjectFile(projectJSon, dependencies);

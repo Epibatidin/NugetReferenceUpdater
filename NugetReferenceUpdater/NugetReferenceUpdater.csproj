@@ -40,9 +40,13 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CsProjSupport.cs" />
+    <Compile Include="DependencyNode.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="ProjectJsonSupport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

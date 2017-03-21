@@ -8,23 +8,11 @@ namespace NugetReferenceUpdater
 {
     class Program
     {
-        public class DependencyNode
-        {
-            public DependencyNode()
-            {
-                References = new Dictionary<string, string>();
-            }
-
-            public string JsonPath { get; set; }
-
-            public IDictionary<string, string> References { get; }
-        }
-
         static void Main(string[] args)
         {
             // search _globalNuget.json
-            string rootPath = @"D:\Develop\KleinZeug\NugetReferenceUpdater\NugetReferenceUpdater";
-            rootPath = @"D:\Develop\FLUX";
+            string rootPath = @"D:\Develop\KleinZeug\NugetReferenceUpdater\NugetReferenceUpdater\Testing";
+            //rootPath = @"D:\Develop\FLUX";
             if (args.Length > 0)
                 rootPath = args[0];
             
@@ -39,62 +27,12 @@ namespace NugetReferenceUpdater
 
             var rootDir = new DirectoryInfo(rootPath);
 
-            var projectJSons = rootDir.GetFiles("project.json", SearchOption.AllDirectories);
+            //new ProjectJsonSupport().ExecuteForDir(rootDir, dependencies);
 
-            for (int i = 0; i < projectJSons.Length; i++)
-            {
-                var projectJSon = projectJSons[i];
-                try
-                {
-                    ExecuteOneProjectFile(projectJSon, dependencies);
-                } 
-                catch (Exception e)
-                {
-                    throw new Exception("Error in file " + projectJSon.FullName, e);
-                }
-            }
+            new CsProjSupport().ExecuteForDir(rootDir, dependencies);
         }
 
-        private static void ExecuteOneProjectFile(FileInfo projectJSon, IList<DependencyNode> dependencies)
-        {
-            string jsonContent = "";
-
-            using (var reader = projectJSon.OpenText())
-            {
-                jsonContent = reader.ReadToEnd();
-                reader.Close();
-            }
-            var jo = JObject.Parse(jsonContent);
-
-            foreach (var dependency in dependencies)
-            {
-                var actualDependencyNode = jo.SelectToken(dependency.JsonPath);
-                if (actualDependencyNode == null) continue;
-
-                foreach (var reference in dependency.References)
-                {
-                    var actualDependencyValue = actualDependencyNode[reference.Key];
-
-                    if (actualDependencyValue == null) continue;
-
-                    var asValue = actualDependencyValue as JValue;
-                    if (asValue == null) continue;
-
-                    asValue.Value = reference.Value;
-                }
-            }
-
-            var newContent = jo.ToString();
-
-            using (var fs = new FileStream(projectJSon.FullName, FileMode.Create))
-            using (var writer = new StreamWriter(fs))
-            {
-                writer.Write(newContent);
-
-                writer.Flush();
-                writer.Close();
-            }
-        }
+        
 
         private static IList<DependencyNode> LoadDependencyNodesFromGlobal(JObject json)
         {
